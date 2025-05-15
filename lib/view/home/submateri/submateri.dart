@@ -1,0 +1,136 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ta_tahsin/core/theme.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart'; // Import youtube_player_flutter
+
+class SubMateriPage extends StatefulWidget {
+  final String title;
+  final String description;
+  final String videoLink;
+  final String intro;
+
+  const SubMateriPage({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.videoLink,
+    required this.intro,
+  });
+
+  @override
+  _SubMateriPageState createState() => _SubMateriPageState();
+}
+
+class _SubMateriPageState extends State<SubMateriPage> {
+  late YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId: YoutubePlayer.convertUrlToId(widget.videoLink)!,
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+                color: blackColor,
+              ),
+            ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: YoutubePlayer(
+              controller: _controller,
+              showVideoProgressIndicator: true,
+            ),
+          ),
+          Container(
+            color: secondPrimaryColor,
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+            width: double.infinity,
+            child: Text(
+              "Materi Pengantar",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: whiteColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Text(
+              widget.intro,
+              style:  TextStyle(
+                fontSize: 16,
+                color: blackColor,
+              ),
+            ),
+          ),
+          
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: secondPrimaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    minimumSize: Size(double.infinity, 50),
+                  ),
+                  onPressed: () {
+                    context.go('/latihan');
+                  },
+                  child: Text(
+                    "Mulai Berlatih",
+                    style: TextStyle(fontSize: 16,color: whiteColor),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+}
