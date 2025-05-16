@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -15,7 +16,7 @@ class ProfilePage extends StatelessWidget {
     if (token != null) {
       // Panggil API logout untuk menghapus token di server
       final response = await http.post(
-        Uri.parse('http://192.168.100.45:8000/api/logout'), // Ganti dengan URL API logout
+        Uri.parse('${BaseUrl.baseUrl}/logout'), // Ganti dengan URL API logout
         headers: {
           'Authorization': 'Bearer $token', // Kirim token di header
         },

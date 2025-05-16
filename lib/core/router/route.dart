@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/view/home/latihan/latihan.dart';
+import 'package:ta_tahsin/view/pengajar/data_santri/detail_data_santri.dart';
+import 'package:ta_tahsin/view/pengajar/kemajuan/detail_kemajuan.dart';
 
 import '../../view/auth/login/login.dart';
 import '../../view/home/latihan/pelafalan_popup.dart';
@@ -32,9 +34,9 @@ final router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
         return MateriPage(
+          id: extra['id'],
           title: extra['title'],
           description: extra['description'],
-          subMateri: extra['subMateri'],
         );
       },
     ),
@@ -84,10 +86,23 @@ final router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/detail_kemajuan',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return DetailKemajuanPage(
+          nama: extra['nama'],
+        );
+      },
+    ),
+    GoRoute(
       path: '/data_santri',
       builder: (context, state) {
         return const DataSantriPage();  // Halaman Data Santri untuk pengajar
       },
+    ),
+    GoRoute(
+      path: '/detail_user',
+      builder: (context, state) =>  DetailDataSantriPage(),
     ),
   ],
 );

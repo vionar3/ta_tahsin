@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/sized/sized.dart';
 import 'package:ta_tahsin/core/theme.dart';
 
@@ -29,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     final response = await http.post(
-      Uri.parse('http://192.168.100.45:8000/api/login'),
+      Uri.parse('${BaseUrl.baseUrl}/login'),
       body: {
         'email': emailController.text,
         'password': passwordController.text,
