@@ -6,6 +6,7 @@ double spacing = 8;
 
 Color primaryColor = const Color(0xffFE0E46);
 Color secondPrimaryColor = const Color(0xff08CACA);
+Color secondPrimaryColor1 = const Color.fromARGB(255, 189, 211, 211);
 Color thirdPrimaryColor = const Color(0xffF2C98A);
 Color blueBorderChat = const Color(0xffE0F6CA);
 Color primaryColorW = const Color(0xff003299).withOpacity(0.2);

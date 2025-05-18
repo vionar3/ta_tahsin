@@ -4,6 +4,7 @@ import 'package:ta_tahsin/core/theme.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart'; // Import youtube_player_flutter
 
 class SubMateriPage extends StatefulWidget {
+  final int id;
   final String title;
   final String description;
   final String videoLink;
@@ -11,6 +12,7 @@ class SubMateriPage extends StatefulWidget {
 
   const SubMateriPage({
     super.key,
+    required this.id,
     required this.title,
     required this.description,
     required this.videoLink,
@@ -29,34 +31,40 @@ class _SubMateriPageState extends State<SubMateriPage> {
     super.initState();
     _controller = YoutubePlayerController(
       initialVideoId: YoutubePlayer.convertUrlToId(widget.videoLink)!,
-      flags: const YoutubePlayerFlags(
-        autoPlay: false,
-        mute: false,
-      ),
+      flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(50), // Ukuran tinggi AppBar
+        child: Card(
+          elevation: 4, // Menambahkan shadow
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero, // Tidak ada radius, sudut tajam
+          ),
+          margin: EdgeInsets.zero, // Menghilangkan margin Card
+          child: AppBar(
+            backgroundColor:
+                secondPrimaryColor, // Warna AppBar (sesuaikan dengan secondPrimaryColor)
+            title: Text(
               widget.title,
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: blackColor,
+                color: Colors.white,
               ),
             ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              color: Colors.white,
+              onPressed: () {
+                Navigator.pop(context); // Aksi kembali
+              },
+            ),
+          ),
         ),
       ),
       body: Column(
@@ -75,7 +83,7 @@ class _SubMateriPageState extends State<SubMateriPage> {
             ),
           ),
           Container(
-            color: secondPrimaryColor,
+            color: secondPrimaryColor1,
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
             width: double.infinity,
             child: Text(
@@ -83,7 +91,7 @@ class _SubMateriPageState extends State<SubMateriPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: whiteColor,
+                color: blackColor,
               ),
             ),
           ),
@@ -92,32 +100,47 @@ class _SubMateriPageState extends State<SubMateriPage> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Text(
               widget.intro,
-              style:  TextStyle(
-                fontSize: 16,
-                color: blackColor,
-              ),
+              style: TextStyle(fontSize: 16, color: blackColor),
             ),
           ),
-          
+
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: secondPrimaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    minimumSize: Size(double.infinity, 50),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 20,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: secondPrimaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        offset: Offset(0, -4),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
-                  onPressed: () {
-                    context.go('/latihan');
-                  },
-                  child: Text(
-                    "Mulai Berlatih",
-                    style: TextStyle(fontSize: 16,color: whiteColor),
+                  child: TextButton(
+                    onPressed: () {
+                      context.go(
+                        '/latihan', // Gantilah dengan rute yang sesuai
+                        extra: {'id': widget.id}, // Mengirimkan id dari halaman sebelumnya
+                      );
+                    },
+                    child: Text(
+                      "Mulai Berlatih",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),

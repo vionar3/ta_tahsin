@@ -59,25 +59,32 @@ class _MateriPageState extends State<MateriPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: secondPrimaryColor,
-        title: Text(
-          widget.title,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: whiteColor,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(50), // Ukuran tinggi AppBar
+        child: Card(
+          elevation: 4, // Menambahkan shadow
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero, // Tidak ada radius, sudut tajam
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back), color: whiteColor,
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/navigasi');
-            }
-          },
+          margin: EdgeInsets.zero, // Menghilangkan margin Card
+          child: AppBar(
+            backgroundColor: secondPrimaryColor, // Warna AppBar (sesuaikan dengan secondPrimaryColor)
+            title: Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              color: Colors.white,
+              onPressed: () {
+                context.go('/navigasi');
+              },
+            ),
+          ),
         ),
       ),
       body: isLoading
@@ -193,6 +200,7 @@ class _MateriPageState extends State<MateriPage> {
                                             context.push(
                                               '/submateri', // Gantilah dengan rute yang sesuai
                                               extra: {
+                                                'id': submateri['id'],
                                                 'title': submateri['title'],
                                                 'description': submateri['subtitle'],
                                                 'videoLink': submateri['video_url'],

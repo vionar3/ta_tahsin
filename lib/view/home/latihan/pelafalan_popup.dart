@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/core/theme.dart';
-import 'model/model_data_pelafalan.dart';
 
 class PelafalanPage extends StatelessWidget {
+  final int id;
   final int currentStep;
+  final List<dynamic> latihanData; // Menerima semua data latihan
 
   const PelafalanPage({
     super.key,
+    required this.id,
     required this.currentStep,
+    required this.latihanData,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Ensure that currentStep is within the bounds of pelafalanList
-    if (currentStep >= pelafalanList.length) {
-      return Center(child: Text("End of List"));
-    }
+    // Ambil data latihan berdasarkan currentStep
+    final latihan = latihanData[currentStep];
 
-    final arabicText = pelafalanList[currentStep]['arabicText'];
-    final latinText = pelafalanList[currentStep]['latinText'];
-    final materiDescription = pelafalanList[currentStep]['materiDescription'];
-    final correctAudio = pelafalanList[currentStep]['correctAudio'];
-    final recordedAudio = pelafalanList[currentStep]['recordedAudio'];
+    
 
     return Scaffold(
       body: Center(
@@ -59,7 +56,7 @@ class PelafalanPage extends StatelessWidget {
                 const SizedBox(height: 20),
                 Center(
                   child: Text(
-                    arabicText,
+                    latihan['potongan_ayat'],
                     style: const TextStyle(
                       fontSize: 30,
                       color: Colors.red,
@@ -154,7 +151,7 @@ class PelafalanPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  materiDescription,
+                  latihan['materi_description'],
                   style: TextStyle(fontSize: 14, color: Colors.black),
                   textAlign: TextAlign.left,
                 ),
@@ -164,11 +161,17 @@ class PelafalanPage extends StatelessWidget {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        // Update the progress and navigate back to LatihanPage
-                        context.go(
-                          '/latihan',
-                          extra: {'currentStep': currentStep + 1}, // Move to next step
-                        );
+                        if (currentStep < latihanData.length - 1) {
+                          context.go(
+                            '/latihan',
+                            extra: {
+                              'id': id, // ganti sesuai kebutuhan
+                              'currentStep': currentStep + 1,
+                            },
+                          );
+                        } else {
+                          context.go('/navigasi');
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: secondPrimaryColor,
@@ -179,7 +182,7 @@ class PelafalanPage extends StatelessWidget {
                         minimumSize: Size(double.infinity, 50),
                       ),
                       child: Text(
-                        'Lanjut',
+                        currentStep == latihanData.length - 1 ? 'Selesai' : 'Lanjut',
                         style: TextStyle(
                           color: whiteColor,
                           fontSize: 16,
@@ -190,7 +193,14 @@ class PelafalanPage extends StatelessWidget {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
-                        context.pop();
+                        context.go(
+                          '/latihan',
+                          extra: {
+                            'id': 1, // Ganti sesuai kebutuhan
+                            'currentStep': currentStep,
+                            'latihanData': latihanData, // Mengirimkan data latihan yang sesuai
+                          },
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -219,4 +229,3 @@ class PelafalanPage extends StatelessWidget {
     );
   }
 }
-

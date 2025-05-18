@@ -45,6 +45,7 @@ final router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
         return SubMateriPage(
+          id: extra['id'],
           title: extra['title'],
           description: extra['description'],
           videoLink: extra['videoLink'],
@@ -52,33 +53,34 @@ final router = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/latihan',
-      builder: (context, state) => LatihanPage(),
-    ),
-// GoRoute(
-//       path: '/pelafalan',
-//       builder: (context, state) {
-//         final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
-//         return PelafalanPage(
+    // Rute untuk halaman Latihan
+GoRoute(
+  path: '/latihan',
+  builder: (BuildContext context, GoRouterState state) {
+    final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+    return LatihanPage(
+      id: extra['id'],
+      currentStep: extra['currentStep'] ?? 0, // Menambahkan parameter currentStep
+    );
+  },
+),
 
-//         );
-//       },
-//     ),
-    GoRoute(
-      path: '/pelafalan',
-      builder: (context, state) {
-        // Ambil data dari state.extra yang dikirim melalui context.go()
-        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
-        final int currentStep = extra['currentStep']; // Ambil currentStep
+// Rute untuk halaman Pelafalan
+GoRoute(
+  path: '/pelafalan',
+  builder: (context, state) {
+    final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+    final int currentStep = extra['currentStep'];
+    final List<dynamic> latihanData = extra['latihanData'];
 
-        // Kirim data ke PelafalanPage
-        return PelafalanPage(
-          currentStep:
-              currentStep, // Mengirim currentStep ke halaman PelafalanPage
-        );
-      },
-    ),
+    return PelafalanPage(
+      id: extra['id'],
+      currentStep: currentStep,
+      latihanData: latihanData,
+    );
+  },
+),
+
     GoRoute(
       path: '/kemajuan',
       builder: (context, state) {
