@@ -49,13 +49,13 @@ class _LoginPageState extends State<LoginPage> {
 
       
       if (peran == 'santri') {
-        router.push("/navigasi"); // Arahkan ke route santri
+        router.push("/navigasi"); 
       } else if (peran == 'pengajar') {
-        router.push("/navigasiPengajar"); // Arahkan ke route pengajar
+        router.push("/navigasiPengajar"); 
       }
     } else {
     debugPrint("anjing");
-      // Tampilkan error jika login gagal
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login Failed: ${response.body}')),
       );
@@ -95,30 +95,18 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 5),
-                // TextField(
-                //   controller: emailController,
-                //   keyboardType: TextInputType.number,
-                //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                //   decoration: InputDecoration(
-                //     prefixIcon: const Icon(Icons.phone, color: Colors.grey),
-                //     hintText: "Masukan No Telp",
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(10),
-                //     ),
-                //   ),
-                // ),
                 TextField(
                   controller: emailController,
                   keyboardType:
                       TextInputType
-                          .emailAddress, // Mengubah keyboard untuk email
+                          .emailAddress, 
                   decoration: InputDecoration(
                     prefixIcon: const Icon(
                       Icons.email,
                       color: Colors.grey,
-                    ), // Ikon email
+                    ), 
                     hintText:
-                        "Masukkan Email", // Ganti hint text menjadi Masukkan Email
+                        "Masukkan Email", 
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -154,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // Navigasi ke halaman lupa password
+                      
                     },
                     child: Text(
                       "Lupa password?",

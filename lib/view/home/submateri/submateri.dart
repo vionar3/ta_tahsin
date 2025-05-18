@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/core/theme.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart'; // Import youtube_player_flutter
+import 'package:youtube_player_flutter/youtube_player_flutter.dart'; 
 
 class SubMateriPage extends StatefulWidget {
   final int id;
@@ -39,16 +39,16 @@ class _SubMateriPageState extends State<SubMateriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(50), // Ukuran tinggi AppBar
+        preferredSize: Size.fromHeight(50), 
         child: Card(
-          elevation: 4, // Menambahkan shadow
+          elevation: 4, 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero, // Tidak ada radius, sudut tajam
+            borderRadius: BorderRadius.zero, 
           ),
-          margin: EdgeInsets.zero, // Menghilangkan margin Card
+          margin: EdgeInsets.zero, 
           child: AppBar(
             backgroundColor:
-                secondPrimaryColor, // Warna AppBar (sesuaikan dengan secondPrimaryColor)
+                secondPrimaryColor, 
             title: Text(
               widget.title,
               style: TextStyle(
@@ -61,7 +61,7 @@ class _SubMateriPageState extends State<SubMateriPage> {
               icon: const Icon(Icons.arrow_back),
               color: Colors.white,
               onPressed: () {
-                Navigator.pop(context); // Aksi kembali
+                Navigator.pop(context); 
               },
             ),
           ),
@@ -129,8 +129,8 @@ class _SubMateriPageState extends State<SubMateriPage> {
                   child: TextButton(
                     onPressed: () {
                       context.go(
-                        '/latihan', // Gantilah dengan rute yang sesuai
-                        extra: {'id': widget.id}, // Mengirimkan id dari halaman sebelumnya
+                        '/latihan', 
+                        extra: {'id': widget.id}, 
                       );
                     },
                     child: Text(

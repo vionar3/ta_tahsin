@@ -3,13 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // Untuk parsing JSON
-import 'dart:async'; // Untuk timer
-import 'package:audioplayers/audioplayers.dart';  // Tambahkan audioplayers
+import 'dart:convert'; 
+import 'dart:async'; 
+import 'package:audioplayers/audioplayers.dart';  
 
 class LatihanPage extends StatefulWidget {
-  final int id; // ID yang diteruskan dari halaman sebelumnya
-  final int currentStep; // Menambahkan parameter currentStep
+  final int id; 
+  final int currentStep; 
 
   const LatihanPage({super.key, required this.id, required this.currentStep});
 
@@ -18,37 +18,46 @@ class LatihanPage extends StatefulWidget {
 }
 
 class _LatihanPageState extends State<LatihanPage> {
-  late Future<List<dynamic>> latihanData; // Data latihan berdasarkan id_submateri
-  bool isRecording = false; // Menandakan apakah sedang merekam
-  int timer = 10; // Timer dimulai dari 10 detik
-  late Timer countdownTimer; // Timer untuk countdown
-  String timerText = "10"; // Menampilkan countdown timer dalam teks
-  final AudioPlayer _audioPlayer = AudioPlayer(); // Inisialisasi Audioplayer
+  late Future<List<dynamic>> latihanData; 
+  bool isRecording = false; 
+  int timer = 10; 
+  late Timer countdownTimer; 
+  String timerText = "10"; 
+  final AudioPlayer _audioPlayer = AudioPlayer(); 
+  bool isAudioPlaying = false;
 
   @override
   void initState() {
     super.initState();
-    latihanData = fetchLatihanData(widget.id); // Ambil data latihan berdasarkan id_submateri yang diteruskan
+    latihanData = fetchLatihanData(widget.id); 
+    
+    _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      if (state == PlayerState.completed) {
+        setState(() {
+          isAudioPlaying = false; 
+        });
+      }
+    });
   }
 
-  // Fungsi untuk mengambil data latihan dari API
+  
   Future<List<dynamic>> fetchLatihanData(int id_submateri) async {
     final response = await http.get(
-      Uri.parse('${BaseUrl.baseUrl}/latihan/$id_submateri'), // Gantilah dengan URL API yang sesuai
+      Uri.parse('${BaseUrl.baseUrl}/latihan/$id_submateri'), 
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)['data']; // Parse data latihan dari API
+      return json.decode(response.body)['data']; 
     } else {
       throw Exception('Failed to load latihan');
     }
   }
 
-  // Fungsi untuk mulai countdown timer
+  
   void startTimer() {
     setState(() {
-      isRecording = true; // Set to true when starting to record
-      timer = 10; // Reset timer to 10 seconds
+      isRecording = true; 
+      timer = 10; 
       timerText = timer.toString();
     });
 
@@ -61,28 +70,31 @@ class _LatihanPageState extends State<LatihanPage> {
       } else {
         countdownTimer.cancel();
         setState(() {
-          isRecording = false; // Stop recording after timer ends
+          isRecording = false; 
         });
       }
     });
   }
 
-  // Fungsi untuk menghentikan timer dan reset ke kondisi semula
+  
   void stopTimer() {
     countdownTimer.cancel();
     setState(() {
-      isRecording = false; // Stop recording
-      timer = 10; // Reset timer
+      isRecording = false; 
+      timer = 10; 
       timerText = timer.toString();
     });
   }
 
-  // Fungsi untuk memutar audio dari asset berdasarkan URL yang diterima
-void playAudio(String audioUrl) async {
-  // Menggunakan AssetSource untuk memutar audio dari asset
-  await _audioPlayer.play(AssetSource(audioUrl));  // Gunakan AssetSource untuk audio lokal
-  print("Audio playing...");
-}
+   
+  void playAudio(String audioUrl) async {
+    
+    await _audioPlayer.play(AssetSource(audioUrl));  
+    setState(() {
+      isAudioPlaying = true; 
+    });
+    print("Audio playing...");
+  }
 
 
   @override
@@ -92,7 +104,7 @@ void playAudio(String audioUrl) async {
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
-            context.go('/navigasi'); // Navigasi kembali ke halaman utama
+            context.go('/navigasi'); 
           },
         ),
         actions: [
@@ -120,16 +132,16 @@ void playAudio(String audioUrl) async {
         future: latihanData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator()); // Tampilkan loading selama data dimuat
+            return Center(child: CircularProgressIndicator()); 
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}')); // Menampilkan pesan error
+            return Center(child: Text('Error: ${snapshot.error}')); 
           } else if (!snapshot.hasData || snapshot.data == null || snapshot.data!.isEmpty) {
-            return Center(child: Text('Tidak ada latihan tersedia')); // Menampilkan pesan jika tidak ada data latihan
+            return Center(child: Text('Tidak ada latihan tersedia')); 
           }
 
-          // Ambil data latihan berdasarkan currentStep
+          
           final latihanList = snapshot.data!;
-          final latihan = latihanList[widget.currentStep]; // Ambil data latihan untuk currentStep
+          final latihan = latihanList[widget.currentStep]; 
 
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
@@ -211,7 +223,7 @@ void playAudio(String audioUrl) async {
                           ),
                         ),
                         Text(
-                          latihan['potongan_ayat'], // Menampilkan potongan ayat dari data latihan
+                          latihan['potongan_ayat'], 
                           style: const TextStyle(
                             fontSize: 30,
                             color: Colors.red,
@@ -221,7 +233,7 @@ void playAudio(String audioUrl) async {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          latihan['latin_text'], // Menampilkan teks latin dari data latihan
+                          latihan['latin_text'], 
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.black,
@@ -230,14 +242,14 @@ void playAudio(String audioUrl) async {
                         ),
                         const SizedBox(height: 30),
                         IconButton(
-                          onPressed: () {
-                            // Memutar audio dari asset sesuai dengan URL yang ada pada `correct_audio`
+                          onPressed: isRecording ? null : () {
+                            
                             playAudio('audio/${latihan['correct_audio']}');
                           },
                           icon: Icon(
-                            Icons.volume_up,
+                            isAudioPlaying ? Icons.volume_up : Icons.volume_down,
                             size: 50,
-                            color: secondPrimaryColor,
+                            color: isRecording ? greysColor : secondPrimaryColor,
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
                         )
@@ -250,29 +262,29 @@ void playAudio(String audioUrl) async {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: isAudioPlaying ? null : () {
                             if (!isRecording) {
-                              startTimer(); // Start timer and change to stop icon
+                              startTimer(); 
                             } else {
-                              stopTimer(); // Stop timer and reset the button
-                              // Pass data to PelafalanPage after recording
+                              stopTimer(); 
+                              
                               context.go(
                                 '/pelafalan',
                                 extra: {
                                   'id': widget.id,
                                   'currentStep': widget.currentStep,
-                                  'latihanData': snapshot.data, // Mengirimkan data latihan yang sudah di-fetch
+                                  'latihanData': snapshot.data, 
                                 },
                               );
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: secondPrimaryColor,
+                            backgroundColor: isAudioPlaying ? greysColor : secondPrimaryColor,
                             shape: const CircleBorder(),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(10),
                           ),
                           child: Icon(
-                            isRecording ? Icons.stop : Icons.mic, // Toggle between mic and stop icon
+                            isRecording ? Icons.stop : Icons.mic, 
                             size: 40,
                             color: Colors.white,
                           ),
@@ -280,6 +292,7 @@ void playAudio(String audioUrl) async {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -291,7 +304,7 @@ void playAudio(String audioUrl) async {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();  // Jangan lupa untuk melepaskan player
+    _audioPlayer.dispose();  
     super.dispose();
   }
 }

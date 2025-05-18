@@ -5,7 +5,7 @@ import 'package:ta_tahsin/core/theme.dart';
 class PelafalanPage extends StatelessWidget {
   final int id;
   final int currentStep;
-  final List<dynamic> latihanData; // Menerima semua data latihan
+  final List<dynamic> latihanData; 
 
   const PelafalanPage({
     super.key,
@@ -16,7 +16,7 @@ class PelafalanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data latihan berdasarkan currentStep
+    
     final latihan = latihanData[currentStep];
 
     
@@ -137,7 +137,7 @@ class PelafalanPage extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Logic to view video
+                        
                       },
                       child: Text(
                         'Lihat Video',
@@ -165,7 +165,7 @@ class PelafalanPage extends StatelessWidget {
                           context.go(
                             '/latihan',
                             extra: {
-                              'id': id, // ganti sesuai kebutuhan
+                              'id': id, 
                               'currentStep': currentStep + 1,
                             },
                           );
@@ -196,9 +196,9 @@ class PelafalanPage extends StatelessWidget {
                         context.go(
                           '/latihan',
                           extra: {
-                            'id': 1, // Ganti sesuai kebutuhan
+                            'id': id, 
                             'currentStep': currentStep,
-                            'latihanData': latihanData, // Mengirimkan data latihan yang sesuai
+                            'latihanData': latihanData, 
                           },
                         );
                       },

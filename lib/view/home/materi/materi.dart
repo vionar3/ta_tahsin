@@ -23,34 +23,34 @@ class MateriPage extends StatefulWidget {
 
 class _MateriPageState extends State<MateriPage> {
   late Future<List<dynamic>> kategoriData;
-  bool isLoading = true; // Variabel untuk mengatur status loading
+  bool isLoading = true; 
 
   @override
   void initState() {
     super.initState();
-    kategoriData = fetchKategoriData(widget.id); // Ambil kategori berdasarkan id materi
+    kategoriData = fetchKategoriData(widget.id); 
   }
 
-  // Fungsi untuk mengambil kategori berdasarkan id_materi
+  
   Future<List<dynamic>> fetchKategoriData(int id_materi) async {
     final response = await http.get(Uri.parse('${BaseUrl.baseUrl}/kategori/$id_materi'));
 
     if (response.statusCode == 200) {
       setState(() {
-        isLoading = false;  // Set isLoading ke false setelah data kategori berhasil diambil
+        isLoading = false;  
       });
-      return json.decode(response.body)['data']; // Parse JSON response ke List kategori
+      return json.decode(response.body)['data']; 
     } else {
       throw Exception('Failed to load kategori');
     }
   }
 
-  // Fungsi untuk mengambil sub-materi berdasarkan id_kategori
+  
   Future<List<dynamic>> fetchSubMateriData(int id_kategori) async {
     final response = await http.get(Uri.parse('${BaseUrl.baseUrl}/sub_materi/$id_kategori'));
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)['data']['sub_materi']; // Parse JSON response ke List sub-materi
+      return json.decode(response.body)['data']['sub_materi']; 
     } else {
       throw Exception('Failed to load sub-materi');
     }
@@ -60,15 +60,15 @@ class _MateriPageState extends State<MateriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(50), // Ukuran tinggi AppBar
+        preferredSize: Size.fromHeight(50), 
         child: Card(
-          elevation: 4, // Menambahkan shadow
+          elevation: 4, 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero, // Tidak ada radius, sudut tajam
+            borderRadius: BorderRadius.zero, 
           ),
-          margin: EdgeInsets.zero, // Menghilangkan margin Card
+          margin: EdgeInsets.zero, 
           child: AppBar(
-            backgroundColor: secondPrimaryColor, // Warna AppBar (sesuaikan dengan secondPrimaryColor)
+            backgroundColor: secondPrimaryColor, 
             title: Text(
               widget.title,
               style: TextStyle(
@@ -88,16 +88,16 @@ class _MateriPageState extends State<MateriPage> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Tampilkan loading spinner selama proses loading
+          ? Center(child: CircularProgressIndicator()) 
           : FutureBuilder<List<dynamic>>(
               future: kategoriData,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator()); // Tampilkan loading saat menunggu
+                  return Center(child: CircularProgressIndicator()); 
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}')); // Tampilkan error jika ada masalah
+                  return Center(child: Text('Error: ${snapshot.error}')); 
                 } else if (!snapshot.hasData || snapshot.data == null) {
-                  return Center(child: Text('Tidak ada data tersedia')); // Tampilkan jika data kosong
+                  return Center(child: Text('Tidak ada data tersedia')); 
                 }
 
                 final kategoriList = snapshot.data!;
@@ -126,13 +126,13 @@ class _MateriPageState extends State<MateriPage> {
                         ],
                       ),
                     ),
-                    // SliverList untuk kategori dan sub-materi
+                    
                     for (var kategori in kategoriList)
                       FutureBuilder<List<dynamic>>(
-                        future: fetchSubMateriData(kategori['id']), // Ambil submateri untuk kategori ini
+                        future: fetchSubMateriData(kategori['id']), 
                         builder: (context, subMateriSnapshot) {
                           if (subMateriSnapshot.connectionState == ConnectionState.waiting) {
-                            return SliverToBoxAdapter(child: SizedBox()); // Tidak ada loading spinner lagi
+                            return SliverToBoxAdapter(child: SizedBox()); 
                           } else if (subMateriSnapshot.hasError) {
                             return SliverToBoxAdapter(child: Center(child: Text('Error: ${subMateriSnapshot.error}')));
                           } else if (!subMateriSnapshot.hasData || subMateriSnapshot.data == null) {
@@ -144,11 +144,11 @@ class _MateriPageState extends State<MateriPage> {
                           return SliverList(
                             delegate: SliverChildListDelegate(
                               [
-                                // Menampilkan nama kategori sekali
+                                
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
                                   child: Text(
-                                    kategori['nama_kategori'], // Menampilkan nama kategori
+                                    kategori['nama_kategori'], 
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class _MateriPageState extends State<MateriPage> {
                                     ),
                                   ),
                                 ),
-                                // Menampilkan sub-materi yang terkait dengan kategori ini
+                                
                                 for (var submateri in subMateriList)
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 0),
@@ -198,7 +198,7 @@ class _MateriPageState extends State<MateriPage> {
                                           ),
                                           onTap: () {
                                             context.push(
-                                              '/submateri', // Gantilah dengan rute yang sesuai
+                                              '/submateri', 
                                               extra: {
                                                 'id': submateri['id'],
                                                 'title': submateri['title'],

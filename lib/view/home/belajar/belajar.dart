@@ -22,15 +22,15 @@ class _BelajarPageState extends State<BelajarPage> {
     _fetchMateri();
   }
 
-  // Fungsi untuk mengambil data materi dari API
+  
   Future<void> _fetchMateri() async {
     final response = await http.get(Uri.parse('${BaseUrl.baseUrl}/materi'));
 
     if (response.statusCode == 200) {
-      // Mengubah format response JSON yang berisi objek dengan data dalam properti 'data'
+      
       final Map<String, dynamic> data = json.decode(response.body);
       setState(() {
-        materiList = data['data']; // Mengambil data dari properti 'data'
+        materiList = data['data']; 
         isLoading = false;
       });
     } else {
@@ -47,7 +47,7 @@ class _BelajarPageState extends State<BelajarPage> {
       ),
       body: Center(
         child: isLoading
-            ? const CircularProgressIndicator() // Menampilkan loading saat data masih dimuat
+            ? const CircularProgressIndicator() 
             : SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -91,7 +91,7 @@ class _BelajarPageState extends State<BelajarPage> {
                                       children: [
                                         Expanded(child: Container()),
                                         Text(
-                                          materi['title'], // Menampilkan judul materi
+                                          materi['title'], 
                                           style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class _BelajarPageState extends State<BelajarPage> {
                                           ),
                                         ),
                                         Text(
-                                          materi['subtitle'], // Menampilkan subtitle materi
+                                          materi['subtitle'], 
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
