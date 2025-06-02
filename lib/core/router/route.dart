@@ -2,7 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/view/home/latihan/latihan.dart';
+import 'package:ta_tahsin/view/home/quiz/detail_quiz.dart';
+import 'package:ta_tahsin/view/home/quiz/hasil_quiz.dart';
+import 'package:ta_tahsin/view/pengajar/data_latihan/detail_data_latihan.dart';
 import 'package:ta_tahsin/view/pengajar/data_santri/detail_data_santri.dart';
+import 'package:ta_tahsin/view/pengajar/data_santri/tambah_santri.dart';
 import 'package:ta_tahsin/view/pengajar/kemajuan/detail_kemajuan.dart';
 
 import '../../view/auth/login/login.dart';
@@ -72,11 +76,13 @@ GoRoute(
     final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
     final int currentStep = extra['currentStep'];
     final List<dynamic> latihanData = extra['latihanData'];
+    final String recordedFilePath = extra['recordedFilePath']; 
 
     return PelafalanPage(
       id: extra['id'],
       currentStep: currentStep,
       latihanData: latihanData,
+      recordedFilePath: recordedFilePath, 
     );
   },
 ),
@@ -104,7 +110,47 @@ GoRoute(
     ),
     GoRoute(
       path: '/detail_user',
-      builder: (context, state) =>  DetailDataSantriPage(),
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return DetailDataSantriPage(
+          id: extra['id'],
+        );
+      },
+    ),
+    GoRoute(
+      path: '/tambah_santri',
+      builder: (context, state) {
+        return TambahSantriPage();  // Halaman Data Santri untuk pengajar
+      },
+    ),
+    GoRoute(
+      path: '/detail_data_latihan',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return DetailDataLatihanPage(
+          id: extra['id'],
+        );
+      },
+    ),
+    GoRoute(
+      path: '/detail_quiz',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return DetailQuizPage(
+          id: extra['id'],
+          title: extra['title'],
+        );
+      },
+    ),
+    GoRoute(
+      path: '/hasil_quiz',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return HasilQuizPage(
+          totalScore: extra['totalScore'],
+          title: extra['title'],
+        );
+      },
     ),
   ],
 );

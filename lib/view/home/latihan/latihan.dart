@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:record/record.dart';
 import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +23,7 @@ class LatihanPage extends StatefulWidget {
 }
 
 class _LatihanPageState extends State<LatihanPage> {
+  final  _record = AudioRecorder();
   late Future<List<dynamic>> latihanData; 
   bool isRecording = false; 
   int timer = 10; 
@@ -25,6 +31,7 @@ class _LatihanPageState extends State<LatihanPage> {
   String timerText = "10"; 
   final AudioPlayer _audioPlayer = AudioPlayer(); 
   bool isAudioPlaying = false;
+  String? recordedFilePath;
 
   @override
   void initState() {
@@ -54,10 +61,11 @@ class _LatihanPageState extends State<LatihanPage> {
   }
 
   
+  // Fungsi untuk memulai timer dan mulai merekam
   void startTimer() {
     setState(() {
-      isRecording = true; 
-      timer = 10; 
+      isRecording = true;
+      timer = 10;
       timerText = timer.toString();
     });
 
@@ -69,16 +77,42 @@ class _LatihanPageState extends State<LatihanPage> {
         });
       } else {
         countdownTimer.cancel();
-        setState(() {
-          isRecording = false; 
-        });
+        stopRecording();
       }
+    });
+
+    // Mulai merekam
+    _startRecording();
+  }
+
+  
+  Future<void> _startRecording() async {
+    if (await Permission.microphone.request().isGranted) {
+      final directory = Directory.systemTemp;
+      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final path = '${directory.path}/record_voice_$fileName.m4a';
+     await _record.start(
+  const RecordConfig(),
+  path: path,
+);
+      setState(() {
+        recordedFilePath = path;
+      });
+    }
+  }
+
+  // Fungsi untuk menghentikan perekaman
+  Future<void> stopRecording() async {
+    await _record.stop();
+    setState(() {
+      isRecording = false;
     });
   }
 
   
   void stopTimer() {
     countdownTimer.cancel();
+    stopRecording();
     setState(() {
       isRecording = false; 
       timer = 10; 
@@ -211,22 +245,22 @@ class _LatihanPageState extends State<LatihanPage> {
                     ),
                     child: Column(
                       children: [
-                        const Padding(
+                         Padding(
                           padding: EdgeInsets.only(bottom: 40.0),
                           child: Text(
                             "Ucapkan potongan kata ini",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: secondPrimaryColor,
                             ),
                           ),
                         ),
                         Text(
                           latihan['potongan_ayat'], 
-                          style: const TextStyle(
-                            fontSize: 30,
-                            color: Colors.red,
+                          style: TextStyle(
+                            fontSize: 19,
+                            color: blackColor,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -274,6 +308,7 @@ class _LatihanPageState extends State<LatihanPage> {
                                   'id': widget.id,
                                   'currentStep': widget.currentStep,
                                   'latihanData': snapshot.data, 
+                                  'recordedFilePath': recordedFilePath,
                                 },
                               );
                             }
@@ -304,6 +339,7 @@ class _LatihanPageState extends State<LatihanPage> {
 
   @override
   void dispose() {
+    _record.dispose();
     _audioPlayer.dispose();  
     super.dispose();
   }

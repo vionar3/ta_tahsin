@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ta_tahsin/core/theme.dart';
+import 'package:ta_tahsin/view/home/quiz/quiz.dart';
 
 import '../../view/home/belajar/belajar.dart';
 import '../../view/home/profile/profile.dart';
@@ -20,7 +21,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   final List<Widget> _pages = [
     const BelajarPage(),
-    // const UjianPage(),
+    const QuizPage(),
     const ProfilePage(),
   ];
 
@@ -44,10 +45,10 @@ class _NavigationPageState extends State<NavigationPage> {
             icon: Icon(Icons.menu_book),
             label: "Belajar",
           ),
-          // BottomNavigationBarItem(
-          //   icon: Icon(Icons.list_alt),
-          //   label: "Ujian",
-          // ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.quiz),
+            label: "Quiz",
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Profile",

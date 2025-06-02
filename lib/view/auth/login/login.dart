@@ -46,6 +46,7 @@ class _LoginPageState extends State<LoginPage> {
 
      
       String peran = data['data']['user']['peran'];
+      prefs.setString('peran', peran);
 
       
       if (peran == 'santri') {
@@ -54,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         router.push("/navigasiPengajar"); 
       }
     } else {
-    debugPrint("anjing");
+    // debugPrint("anjing");
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login Failed: ${response.body}')),
@@ -91,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                 Center(child: Image.asset('assets/logo/sho.jpg', height: 180)),
                 const SizedBox(height: 20),
                 const Text(
-                  "No Telp",
+                  "Email",
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 5),

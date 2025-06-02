@@ -12,7 +12,7 @@ final String nama;
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kemajuan'),
+        title: const Text('Detail Kemajuan'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),color: blackColor,
           onPressed: () {

@@ -1,26 +1,72 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/core/theme.dart';
 
-class PelafalanPage extends StatelessWidget {
+class PelafalanPage extends StatefulWidget {
   final int id;
   final int currentStep;
-  final List<dynamic> latihanData; 
+  final List<dynamic> latihanData;
+  final String recordedFilePath;
 
   const PelafalanPage({
     super.key,
     required this.id,
     required this.currentStep,
     required this.latihanData,
+    required this.recordedFilePath,
   });
 
   @override
+  _PelafalanPageState createState() => _PelafalanPageState();
+}
+
+class _PelafalanPageState extends State<PelafalanPage> {
+  late String recordedFilePath;
+  late int currentStep;
+  late List<dynamic> latihanData;
+  late dynamic latihan;
+  final AudioPlayer _audioPlayer = AudioPlayer(); 
+  bool isAudioPlaying = false;
+  bool isAudioRecordPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    recordedFilePath = widget.recordedFilePath;
+    
+    currentStep = widget.currentStep;
+    latihanData = widget.latihanData;
+    latihan = latihanData[currentStep];
+    _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      if (state == PlayerState.completed) {
+        setState(() {
+          isAudioPlaying = false; 
+          isAudioRecordPlaying = false; 
+        });
+      }
+    });
+  }
+
+  void playAudio(String audioUrl) async {
+    
+    await _audioPlayer.play(AssetSource(audioUrl));  
+    setState(() {
+      isAudioPlaying = true; 
+    });
+    print("Audio playing...");
+  }
+
+  void playRecordedAudio() async {
+    await _audioPlayer.play(DeviceFileSource(recordedFilePath));  
+    setState(() {
+      isAudioRecordPlaying = true; 
+    });
+    print("Audio playing...");
+  }
+
+  @override
   Widget build(BuildContext context) {
-    
-    final latihan = latihanData[currentStep];
-
-    
-
     return Scaffold(
       body: Center(
         child: Card(
@@ -57,9 +103,9 @@ class PelafalanPage extends StatelessWidget {
                 Center(
                   child: Text(
                     latihan['potongan_ayat'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 30,
-                      color: Colors.red,
+                      color: blackColor,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -69,56 +115,68 @@ class PelafalanPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.grey,
+                    GestureDetector(
+                      onTap: () {
+                        playRecordedAudio();
+                        print("Pelafalan Kamu tapped!");
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color:  Colors.grey,
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Pelafalan Kamu',
-                            style: TextStyle(
-                              color: secondPrimaryColor,
-                              fontWeight: FontWeight.bold,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Pelafalan Kamu',
+                              style: TextStyle(
+                                color: secondPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Icon(
-                            Icons.volume_up,
-                            color: secondPrimaryColor,
-                            size: 30,
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Icon(
+                              isAudioRecordPlaying ? Icons.volume_up : Icons.volume_down,
+                              color: secondPrimaryColor,
+                              size: 30,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.grey,
+                    GestureDetector(
+                      onTap: () {
+                        print("Pelafalan Ustadz tapped!");
+                        playAudio('audio/${latihan['correct_audio']}');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.grey,
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Pelafalan Ustadz',
-                            style: TextStyle(
-                              color: secondPrimaryColor,
-                              fontWeight: FontWeight.bold,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Pelafalan Ustadz',
+                              style: TextStyle(
+                                color: secondPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Icon(
-                            Icons.volume_up,
-                            color: secondPrimaryColor,
-                            size: 30,
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Icon(
+                              isAudioPlaying ? Icons.volume_up : Icons.volume_down,
+                              color: secondPrimaryColor,
+                              size: 30,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -137,7 +195,7 @@ class PelafalanPage extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        
+                        // Logic untuk melihat video
                       },
                       child: Text(
                         'Lihat Video',
@@ -162,11 +220,14 @@ class PelafalanPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         if (currentStep < latihanData.length - 1) {
+                          setState(() {
+                            currentStep++; // Update step saat lanjut
+                          });
                           context.go(
                             '/latihan',
                             extra: {
-                              'id': id, 
-                              'currentStep': currentStep + 1,
+                              'id': widget.id,
+                              'currentStep': currentStep,
                             },
                           );
                         } else {
@@ -196,9 +257,9 @@ class PelafalanPage extends StatelessWidget {
                         context.go(
                           '/latihan',
                           extra: {
-                            'id': id, 
+                            'id': widget.id,
                             'currentStep': currentStep,
-                            'latihanData': latihanData, 
+                            'latihanData': latihanData,
                           },
                         );
                       },
