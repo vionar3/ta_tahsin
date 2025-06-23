@@ -1,7 +1,5 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_tahsin/core/baseurl/base_url.dart';
@@ -21,6 +19,9 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool showPass = true;
+  bool isLoading = false; // Menambahkan variabel untuk status loading
+  bool isEmailEmpty = false; // Validasi untuk email
+  bool isPasswordEmpty = false; // Validasi untuk password
 
   void updateObsecure() {
     setState(() {
@@ -29,151 +30,213 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> login() async {
+    setState(() {
+      isEmailEmpty = emailController.text.isEmpty;
+      isPasswordEmpty = passwordController.text.isEmpty;
+    });
+
+    // Cek jika ada input yang kosong
+    if (isEmailEmpty || isPasswordEmpty) {
+      return; // Jika ada input yang kosong, hentikan proses login
+    }
+
+    setState(() {
+      isLoading = true; // Menandakan bahwa login sedang diproses
+    });
+
     final response = await http.post(
-      Uri.parse('${BaseUrl.baseUrl}/login'),
+      Uri.parse('${BaseUrl.baseUrl}/loginWithTelp'),
       body: {
-        'email': emailController.text,
+        'no_telp_wali': emailController.text,
         'password': passwordController.text,
       },
     );
 
+    setState(() {
+      isLoading = false; // Menandakan bahwa login telah selesai
+    });
+
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
 
-      
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('token', data['data']['access_token']);
 
-     
       String peran = data['data']['user']['peran'];
       prefs.setString('peran', peran);
 
-      
       if (peran == 'santri') {
-        router.push("/navigasi"); 
+        router.push("/navigasi");
       } else if (peran == 'pengajar') {
-        router.push("/navigasiPengajar"); 
+        router.push("/navigasiPengajar");
       }
     } else {
-    // debugPrint("anjing");
-      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login Failed: ${response.body}')),
-      );
+  SnackBar(
+    content: Row(
+      children: [
+        const Icon(Icons.error, color: Colors.white), // Menambahkan ikon error
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            '${json.decode(response.body)['data']['message']}',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    ),
+    backgroundColor: alertTextColor, // Mengubah warna latar belakang menjadi merah
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(10), // Menambahkan radius hanya di atas kiri
+        topRight: Radius.circular(10), // Menambahkan radius hanya di atas kanan
+        bottomLeft: Radius.zero, // Tidak ada radius di bawah kiri
+        bottomRight: Radius.zero, // Tidak ada radius di bawah kanan
+      ),
+    ),
+  ),
+);
     }
   }
+
+  void showErrorBottomSheet(BuildContext context, String message) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent, // Menjadikan background transparan
+    builder: (BuildContext context) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.red, // Mengubah warna latar belakang menjadi merah
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white), // Menambahkan ikon error
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message, // Menampilkan pesan error
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: PaddingCustom().paddingHorizontal(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                Text(
-                  "Selamat Datang,",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: bold,
-                    color: blackColor,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  "Masuk Untuk Melanjutkan",
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-                Center(child: Image.asset('assets/logo/sho.jpg', height: 180)),
-                const SizedBox(height: 20),
-                const Text(
-                  "Email",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 5),
-                TextField(
-                  controller: emailController,
-                  keyboardType:
-                      TextInputType
-                          .emailAddress, 
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(
-                      Icons.email,
-                      color: Colors.grey,
-                    ), 
-                    hintText:
-                        "Masukkan Email", 
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 15),
-                const Text(
-                  "Password",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 5),
-                TextField(
-                  controller: passwordController,
-                  obscureText: showPass,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.lock, color: Colors.grey),
-                    hintText: "Enter your password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        showPass ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
-                      ),
-                      onPressed: updateObsecure,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      
-                    },
-                    child: Text(
-                      "Lupa password?",
-                      style: TextStyle(color: secondPrimaryColor, fontSize: 14),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      login();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: secondPrimaryColor,
-                      foregroundColor: whiteColor,
-                      padding: PaddingCustom().paddingVertical(15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text("Masuk"),
-                  ),
-                ),
-                const SizedBox(height: 30),
-              ],
+      body: Column(
+        children: [
+          // Top half: Background image
+          Container(
+            height: MediaQuery.of(context).size.height * 0.5, // Half the screen height
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/muhajirin4.jpg'), // Your image
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        ),
+          
+          // Bottom half: Form section
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              color: Colors.white, // White background for the form
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "No Telp",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: emailController,  // Ubah menjadi controller untuk no_telp jika diperlukan
+                      keyboardType: TextInputType.phone,  // Gunakan TextInputType.phone untuk nomor telepon
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(
+                          Icons.phone,  // Ganti icon dengan ikon telepon
+                          color: Colors.grey,
+                        ),
+                        hintText: "Masukkan No. Telepon",  // Ubah hint text sesuai kebutuhan
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        errorText: isEmailEmpty ? 'No Telepon tidak boleh kosong' : null, // Menambahkan pesan error
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: isEmailEmpty ? Colors.red : Colors.blue), // Ganti warna border saat error
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+                    const Text(
+                      "Password",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: showPass,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock, color: Colors.grey),
+                        hintText: "Masukkan Password",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            showPass ? Icons.visibility_off : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: updateObsecure,
+                        ),
+                        errorText: isPasswordEmpty ? 'Password tidak boleh kosong' : null, // Menambahkan pesan error
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: isPasswordEmpty ? Colors.red : Colors.blue), // Ganti warna border saat error
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : () { // Disable button saat loading
+                          login();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: secondPrimaryColor,
+                          foregroundColor: whiteColor,
+                          padding: PaddingCustom().paddingVertical(15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: isLoading 
+                            ? CircularProgressIndicator(color: whiteColor) // Menampilkan indikator loading
+                            : const Text("Masuk"), // Menampilkan teks "Masuk" ketika tidak loading
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

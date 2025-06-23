@@ -24,7 +24,7 @@ class _NavigationPengajarPageState extends State<NavigationPengajarPage> {
   final List<Widget> _pages = [
     const KemajuanPage(),
     const DataSantriPage(),
-    const DataLatihanPage(),
+    // const DataLatihanPage(),
     const PengajarProfilePage(),
   ];
 
@@ -52,10 +52,10 @@ class _NavigationPengajarPageState extends State<NavigationPengajarPage> {
             icon: Icon(Icons.list_alt),
             label: "Data Santri",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: "Data Latihan",
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.list_alt),
+          //   label: "Data Latihan",
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Profile",

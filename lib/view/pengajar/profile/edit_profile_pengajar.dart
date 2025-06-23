@@ -6,15 +6,14 @@ import 'package:ta_tahsin/core/theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class DetailDataSantriPage extends StatefulWidget {
-  final int id;
-  const DetailDataSantriPage({super.key, required this.id});
+class EditProfilePengajar extends StatefulWidget {
+  const EditProfilePengajar({super.key});
 
   @override
-  _DetailDataSantriPageState createState() => _DetailDataSantriPageState();
+  _EditProfilePengajarState createState() => _EditProfilePengajarState();
 }
 
-class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
+class _EditProfilePengajarState extends State<EditProfilePengajar> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
@@ -24,6 +23,7 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
   final TextEditingController _jenjangPendidikanController = TextEditingController();
   String _gender = 'Laki-laki';
   bool _isEditing = false; // Track whether we are in edit mode
+  bool _isLoading = true; // Track whether data is loading
   String _selectedJenjangPendidikan = 'SD'; // Default value
 
   // List for dropdown values
@@ -32,89 +32,95 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
   @override
   void initState() {
     super.initState();
-    // Panggil API untuk mengambil data pengguna berdasarkan ID
     _fetchUserData();
   }
 
-  // Fungsi untuk mengambil data pengguna berdasarkan ID dengan token dari SharedPreferences
+  // Fetch user data from API
   Future<void> _fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? authToken = prefs.getString('token');
+    String? token = prefs.getString('token');
 
-    if (authToken == null) {
-      print("Token tidak ditemukan!");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Token tidak ditemukan!')),
-      );
+    if (token == null) {
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
     final response = await http.get(
-      Uri.parse('${BaseUrl.baseUrl}/user/${widget.id}'),
+      Uri.parse('${BaseUrl.baseUrl}/user'),
       headers: {
-        'Authorization': 'Bearer $authToken',
+        'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      var data = jsonDecode(response.body)['data'];
-
+      final data = json.decode(response.body);
       setState(() {
-        _fullNameController.text = data['nama_lengkap'];
-        _addressController.text = data['alamat'];
-        _dobController.text = data['usia'].toString();
-        _phoneController.text = data['no_telp_wali'];
-        _emailController.text = data['email'];
-        _jenjangPendidikanController.text = data['jenjang_pendidikan'];
-        _gender = data['jenis_kelamin'];
+        _fullNameController.text = data['data']['nama_lengkap'];
+        _addressController.text = data['data']['alamat'];
+        _dobController.text = data['data']['usia'];
+        _phoneController.text = data['data']['no_telp_wali'];
+        _emailController.text = data['data']['email'];
+        _jenjangPendidikanController.text = data['data']['jenjang_pendidikan'];
+        _gender = data['data']['jenis_kelamin'];
+        _isLoading = false;
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat data pengguna')),
-      );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  // API function to update user data
-  Future<void> _updateUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? authToken = prefs.getString('token');
+  // Update user data using API
+Future<void> _updateUserData() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
 
-    if (authToken == null) {
-      print("Token tidak ditemukan!");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Token tidak ditemukan!')),
-      );
-      return;
-    }
-
-    final response = await http.put(
-      Uri.parse('${BaseUrl.baseUrl}/updateUser/${widget.id}'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'nama_lengkap': _fullNameController.text,
-        'alamat': _addressController.text,
-        'usia': _dobController.text,
-        'no_telp_wali': _phoneController.text,
-        'email': _emailController.text,
-        'jenjang_pendidikan': _jenjangPendidikanController.text,
-        'jenis_kelamin': _gender,
-      }),
+  if (token == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Token tidak ditemukan')),
     );
-
-    if (response.statusCode == 200) {
-      // Show the success dialog
-      _showSuccessDialog();
-    } else {
-      // Handle error if the API call fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update user')),
-      );
-    }
+    return;
   }
+
+  final response = await http.post(
+    Uri.parse('${BaseUrl.baseUrl}/user/updateBytoken'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'nama_lengkap': _fullNameController.text,
+      'alamat': _addressController.text,
+      'usia': _dobController.text,
+      'no_telp_wali': _phoneController.text,
+      'email': _emailController.text,
+      'jenjang_pendidikan': _jenjangPendidikanController.text,
+      'jenis_kelamin': _gender,
+    }),
+  );
+
+  // Print response status and body for debugging
+  print("Response status: ${response.statusCode}");
+  print("Response body: ${response.body}");
+
+  if (response.statusCode == 200) {
+    _showSuccessDialog();
+    setState(() {
+      _isEditing = false;
+    });
+    // Optionally navigate to another page or refresh profile
+  } else {
+    // Handle error and print response body
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gagal mengubah data: ${response.body}')),
+    );
+    print("Error response: ${response.body}"); // Print error response here
+  }
+}
+
 
   // Show a success dialog after user data is updated successfully
   void _showSuccessDialog() {
@@ -129,14 +135,9 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
               child: Text('OK'),
               onPressed: () {
                 setState(() {
-  _isEditing = false;
-});
-
+                  _isEditing = false;
+                });
                 Navigator.of(context).pop();
-                // context.go('/navigasiPengajar');
-                // context.go('/detail_user', extra: {
-                //                 'id': widget.id,
-                //               });
               },
             ),
           ],
@@ -145,7 +146,6 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
     );
   }
 
-  // Function to show DatePicker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
@@ -165,11 +165,10 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Santri'),
+        title: Text('Edit Profile Pengajar'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            // context.go('/navigasiPengajar');
             context.pop();
           },
         ),
@@ -184,86 +183,88 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundImage: AssetImage('assets/icon/defaultprofile.jpeg'),
-                  backgroundColor: Colors.transparent,
-                ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: secondPrimaryColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: Text(
-                  'Detail Dasar',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: whiteColor),
-                ),
-              ),
-              SizedBox(height: 16),
-              _buildTextFormField(_fullNameController, 'Nama Lengkap', _isEditing),
-              _buildAddressField(_addressController, 'Alamat', _isEditing),
-              _buildDateOfBirthField(_dobController, 'Tanggal Lahir', _isEditing),
-              _buildDropdownJenjangPendidikan( 'Jenjang Pendidikan', _isEditing),
-              Row(
-                children: [
-                  Text('Jenis Kelamin', style: TextStyle(fontSize: 16)),
-                  Radio<String>(
-                    value: 'Laki-laki',
-                    groupValue: _gender,
-                    onChanged: _isEditing
-                        ? (value) {
-                            setState(() {
-                              _gender = value!;
-                            });
-                          }
-                        : null,
-                  ),
-                  Text('Laki-laki'),
-                  Radio<String>(
-                    value: 'Perempuan',
-                    groupValue: _gender,
-                    onChanged: _isEditing
-                        ? (value) {
-                            setState(() {
-                              _gender = value!;
-                            });
-                          }
-                        : null,
-                  ),
-                  Text('Perempuan'),
-                ],
-              ),
-              SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: secondPrimaryColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: Text(
-                  'Detail Kontak',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: whiteColor),
-                ),
-              ),
-              SizedBox(height: 16),
-              _buildPhoneField(_phoneController, 'No WA Wali', _isEditing),
-              _buildEmailField(_emailController, 'Email', _isEditing),
-              SizedBox(height: 20),
-              ElevatedButton(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage: AssetImage('assets/icon/defaultprofile.jpeg'),
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: secondPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+                      ),
+                      child: Text(
+                        'Detail Dasar',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: whiteColor),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    _buildTextFormField(_fullNameController, 'Nama Lengkap', _isEditing),
+                    _buildAddressField(_addressController, 'Alamat', _isEditing),
+                    _buildDateOfBirthField(_dobController, 'Tanggal Lahir', _isEditing),
+                    _buildDropdownJenjangPendidikan( 'Jenjang Pendidikan', _isEditing),
+                    Row(
+                      children: [
+                        Text('Jenis Kelamin', style: TextStyle(fontSize: 16)),
+                        Radio<String>(
+                          value: 'Laki-laki',
+                          groupValue: _gender,
+                          onChanged: _isEditing
+                              ? (value) {
+                                  setState(() {
+                                    _gender = value!;
+                                  });
+                                }
+                              : null,
+                        ),
+                        Text('Laki-laki'),
+                        Radio<String>(
+                          value: 'Perempuan',
+                          groupValue: _gender,
+                          onChanged: _isEditing
+                              ? (value) {
+                                  setState(() {
+                                    _gender = value!;
+                                  });
+                                }
+                              : null,
+                        ),
+                        Text('Perempuan'),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: secondPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+                      ),
+                      child: Text(
+                        'Detail Kontak',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: whiteColor),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    _buildPhoneField(_phoneController, 'No WA Wali', _isEditing),
+                    _buildEmailField(_emailController, 'Email', _isEditing),
+                    SizedBox(height: 20),
+                    ElevatedButton(
               onPressed: _isEditing
                       ? () {
                           // Trigger the update user function when editing
@@ -287,10 +288,10 @@ class _DetailDataSantriPageState extends State<DetailDataSantriPage> {
                 ),
               ),
             ),
-            ],
-          ),
-        ),
-      ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 

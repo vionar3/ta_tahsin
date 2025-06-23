@@ -5,12 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; 
 import 'dart:async'; 
 import 'package:audioplayers/audioplayers.dart';  
+import 'package:http_parser/http_parser.dart';
 
 class LatihanPage extends StatefulWidget {
   final int id; 
@@ -101,14 +103,134 @@ class _LatihanPageState extends State<LatihanPage> {
     }
   }
 
-  // Fungsi untuk menghentikan perekaman
-  Future<void> stopRecording() async {
-    await _record.stop();
+  // // Fungsi untuk menghentikan perekaman
+  // Future<void> stopRecording() async {
+  //   await _record.stop();
+  //   setState(() {
+  //     isRecording = false;
+  //   });
+  // }
+
+//   // In stopRecording(), save the recorded audio file path to the database
+// Future<void> stopRecording() async {
+//     await _record.stop();
+//     setState(() {
+//       isRecording = false;
+//     });
+
+//     debugPrint('ID Latihan: ${widget.id}');
+//   debugPrint('File Path: $recordedFilePath');
+//     // After stopping the recording, save the audio file name/path to the backend
+//     if (recordedFilePath != null) {
+//       saveRecordedAudioName(recordedFilePath!); // Call the save function to API
+//     }
+//   }
+Future<void> uploadRecording(String filePath) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? authToken = prefs.getString('token'); 
+  var uri = Uri.parse('${BaseUrl.baseUrl}/upload_audio');
+  var request = http.MultipartRequest('POST', uri);
+
+  // Menambahkan file rekaman ke dalam request
+  var file = await http.MultipartFile.fromPath(
+    'recorded_audio',  // Nama field yang akan diterima di Laravel
+    filePath,
+    // contentType: MediaType('file', 'm4a'),  // Sesuaikan dengan jenis file
+  );
+
+  request.files.add(file);
+
+  // Kirimkan request
+  // Menambahkan header Authorization
+  request.headers.addAll({
+    'Authorization': 'Bearer $authToken',  // Menambahkan token ke dalam header
+  });
+  var response = await request.send();
+
+  if (response.statusCode == 200) {
+    print('Upload berhasil!');
+  } else {
+    print('Gagal mengupload file: ${response.statusCode}');
+  }
+}
+
+Future<void> stopRecording() async {
+  await _record.stop();
+  await uploadRecording(recordedFilePath!);
+
+  // Check if the widget is still mounted before calling setState
+  if (mounted) {
     setState(() {
       isRecording = false;
     });
   }
 
+  // Get the latihan id from the latihanData list using the current step
+  final latihanList = await latihanData; // Fetch the data again if not already fetched
+  final latihan = latihanList[widget.currentStep];  // Get the latihan at current step
+  final idLatihan = latihan['id'];  // Use the 'id' from latihan data
+
+  await storeLatihanId(idLatihan);
+
+  // Debug print to show the file path and latihan ID
+  debugPrint('ID Latihan: $idLatihan');
+  debugPrint('File Path: $recordedFilePath');
+
+  // After stopping the recording, save the audio file name/path to the backend
+  if (recordedFilePath != null) {
+    saveRecordedAudioName(idLatihan, recordedFilePath!); // Pass the latihan ID to the save function
+  }
+}
+
+Future<void> saveRecordedAudioName(int idLatihan, String filePath) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? authToken = prefs.getString('token');
+  debugPrint("Token yang diambil: $authToken");
+
+  // Check if filePath is valid
+  if (filePath.isEmpty) {
+    debugPrint("Error: File path is empty.");
+    return;  // Exit if the file path is invalid
+  }
+
+  final String apiUrl = '${BaseUrl.baseUrl}/latihan/$idLatihan/saverecord'; // API endpoint with the latihan ID
+  
+  try {
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {
+        'Authorization': 'Bearer $authToken',  // Authentication token
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'recorded_audio': filePath,  // Send the file path as parameter
+      }),
+    );
+
+    // Check if the response status is successful
+    if (response.statusCode == 200) {
+      debugPrint('Audio file saved successfully');
+    } else {
+      // Log more detailed error information
+      debugPrint('Failed to save audio file');
+      debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+    }
+  } catch (e) {
+    // Catch any error that occurs during the request and log it
+    debugPrint("Error saving audio file: $e");
+  }
+}
+
+Future<void> storeLatihanId(int idLatihan) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<int> latihanIds = prefs.getStringList('latihanIds')?.map((e) => int.parse(e)).toList() ?? [];
+  latihanIds.add(idLatihan);  // Add the new id to the list
+
+  // Store the list as a string (in SharedPreferences)
+  await prefs.setStringList('latihanIds', latihanIds.map((e) => e.toString()).toList());
+  debugPrint("Stored Latihan IDs: $latihanIds");
+}
   
   void stopTimer() {
     countdownTimer.cancel();
@@ -340,7 +462,10 @@ class _LatihanPageState extends State<LatihanPage> {
   @override
   void dispose() {
     _record.dispose();
-    _audioPlayer.dispose();  
+    _audioPlayer.dispose();
+    if (countdownTimer.isActive) {
+    countdownTimer.cancel();  // Cancel the timer
+  }  
     super.dispose();
   }
 }

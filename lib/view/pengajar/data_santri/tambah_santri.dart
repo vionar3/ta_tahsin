@@ -15,11 +15,14 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController(); // For DOB
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _jenjangPendidikanController = TextEditingController();
   String _gender = 'Laki-laki';
+  String _selectedJenjangPendidikan = 'SD'; // Default value
+
+  // List for dropdown values
+  List<String> jenjangPendidikanOptions = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -44,11 +47,11 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
       final Map<String, String> data = {
         'nama_lengkap': _fullNameController.text,
         'alamat': _addressController.text,
-        'usia': _dobController.text,
+        'usia': _dobController.text,  // Use formatted DOB
         'no_telp_wali': _phoneController.text,
         'email': _emailController.text,
         'jenis_kelamin': _gender,
-        'jenjang_pendidikan': _jenjangPendidikanController.text,
+        'jenjang_pendidikan': _selectedJenjangPendidikan,  // Send selected value
       };
 
       final response = await http.post(
@@ -74,7 +77,7 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.go('/navigasiPengajar');
+                  context.pop();
                 },
                 child: Text('OK'),
               ),
@@ -91,7 +94,7 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  context.go('/navigasiPengajar');
+                  context.pop();
                 },
                 child: Text('OK'),
               ),
@@ -104,16 +107,51 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
     }
   }
 
+  // Function to show DatePicker
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(), // Default current date
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (selectedDate != null) {
+      setState(() {
+        // Format selected date as 'dd/MM/yyyy'
+        _dobController.text = "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Tambah Santri'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go('/navigasiPengajar');
-          },
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(50),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+          ),
+          margin: EdgeInsets.zero,
+          child: AppBar(
+            backgroundColor: secondPrimaryColor,
+            title: Text(
+              "Tambah Santri",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              color: Colors.white,
+              onPressed: () {
+                context.pop();
+              },
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -124,9 +162,9 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
             child: Column(
               children: [
                 _buildTextFormField(_fullNameController, 'Nama Lengkap'),
-                _buildTextFormField(_addressController, 'Alamat'),
-                _buildTextFormField(_dobController, 'Usia'),
-                _buildTextFormField(_jenjangPendidikanController, 'Jenjang Pendidikan'),
+                _buildAddressField(_addressController,'Alamat'),
+                _buildDateOfBirthField(), // Date of Birth Picker
+                _buildDropdownJenjangPendidikan(), // Jenjang Pendidikan Dropdown
                 Row(
                   children: [
                     Text('Jenis Kelamin', style: TextStyle(fontSize: 16)),
@@ -153,30 +191,31 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
                   ],
                 ),
                 SizedBox(height: 20),
-                _buildTextFormField(_phoneController, 'No WA Wali'),
-                _buildTextFormField(_emailController, 'Email'),
+                _buildPhoneField(), // No WA Wali input with icon on right
+                _buildEmailField(), // Email input with icon on right
                 SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: secondPrimaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      minimumSize: Size(double.infinity, 50),
-                      elevation: 5,
-                    ),
-                    onPressed: () async {
+                ElevatedButton(
+              onPressed: () async {
                       print("Simpan Taped");
                       await _submitForm();
                     },
-                    child: Text(
-                      "Simpan",
-                      style: TextStyle(fontSize: 16, color: whiteColor),
-                    ),
-                  ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: secondPrimaryColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50,
+                  vertical: 15,
                 ),
+                minimumSize: Size(double.infinity, 40),
+              ),
+              child: Text(
+                'Simpan',
+                style: TextStyle(
+                  color: whiteColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
               ],
             ),
           ),
@@ -185,7 +224,41 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
     );
   }
 
-  // Fungsi pembuat TextFormField
+  // Fungsi untuk input Alamat dengan tipe longtext (area teks lebih besar)
+Widget _buildAddressField(TextEditingController controller, String labelText) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      SizedBox(height: 8),
+      TextFormField(
+        controller: _addressController,
+        keyboardType: TextInputType.multiline, // Membuka multiline pada keyboard
+        maxLines: 3, // Menentukan tinggi area input, bisa lebih panjang jika diperlukan
+        autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none, // Menghilangkan border default
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Harap masukkan Alamat';
+          }
+          return null;
+        },
+      ),
+      SizedBox(height: 20),
+    ],
+  );
+}
+
+
+  // Fungsi pembuat TextFormField dengan desain seperti pada ubah_password.dart
   Widget _buildTextFormField(TextEditingController controller, String labelText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,18 +267,15 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
         SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Colors.grey[200], // Warna latar belakang lebih terang
             border: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(40), // Sudut melengkung
+              borderSide: BorderSide.none, // Menghilangkan border default
             ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -218,4 +288,155 @@ class _TambahSantriPageState extends State<TambahSantriPage> {
       ],
     );
   }
+
+  // Fungsi untuk input tanggal lahir
+  Widget _buildDateOfBirthField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Tanggal Lahir', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _selectDate(context),
+          child: AbsorbPointer(
+            child: TextFormField(
+              controller: _dobController,
+              autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                hintText: 'Pilih Tanggal Lahir',
+                suffixIcon: Icon(Icons.calendar_today, color: Colors.grey), // Menambahkan ikon kalender
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Harap pilih Tanggal Lahir';
+                }
+                return null;
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // Fungsi untuk dropdown Jenjang Pendidikan
+  Widget _buildDropdownJenjangPendidikan() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Jenjang Pendidikan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedJenjangPendidikan,
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedJenjangPendidikan = newValue!;
+            });
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200], // Warna latar belakang lebih terang
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(40), // Sudut melengkung
+              borderSide: BorderSide.none, // Menghilangkan border default
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          ),
+          items: jenjangPendidikanOptions.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Harap pilih Jenjang Pendidikan';
+            }
+            return null;
+          },
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // Fungsi untuk input No WA Wali dengan tipe nomor dan ikon di kanan
+  Widget _buildPhoneField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('No WA Wali', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: _phoneController,
+          keyboardType: TextInputType.phone, // Set keyboard type to phone
+          autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(40),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            suffixIcon: Icon(Icons.phone, color: Colors.grey), // Icon for phone number on the right
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Harap masukkan No WA Wali';
+            }
+            return null;
+          },
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // Fungsi untuk input Email dengan tipe email dan ikon di kanan
+Widget _buildEmailField() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('Email', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      SizedBox(height: 8),
+      TextFormField(
+        controller: _emailController,
+        keyboardType: TextInputType.emailAddress, // Set keyboard type to email
+        autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(40),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          suffixIcon: Icon(Icons.email, color: Colors.grey), // Icon for email on the right
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Harap masukkan Email';
+          }
+          // Validasi untuk memastikan email berakhiran @gmail.com
+          final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@gmail\.com$');
+          if (!regex.hasMatch(value)) {
+            return 'Harap masukkan @gmail.com';
+          }
+          return null;
+        },
+      ),
+      SizedBox(height: 20),
+    ],
+  );
+}
+
 }

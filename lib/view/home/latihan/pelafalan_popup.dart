@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 
 class PelafalanPage extends StatefulWidget {
@@ -64,6 +69,101 @@ class _PelafalanPageState extends State<PelafalanPage> {
     });
     print("Audio playing...");
   }
+
+  // Future<void> updateProgress(int subMateriId) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? authToken = prefs.getString('token');
+  //   debugPrint("Token yang diambil: $authToken");
+  //   final String apiUrl = '${BaseUrl.baseUrl}/progress/$subMateriId/update'; // Ganti dengan URL API yang sesuai
+
+  //   final response = await http.post(
+  //     Uri.parse(apiUrl),
+  //     headers: {
+  //       'Authorization': 'Bearer $authToken',
+  //     },
+  //     body: jsonEncode({
+  //       'sub_materi_id': subMateriId, // ID submateri yang sedang dikerjakan
+  //     }),
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     // Progres berhasil diupdate
+  //     print('Progress updated successfully');
+  //     // ignore: use_build_context_synchronously
+  //     _showCompletionDialog(context);
+  //   } else {
+  //     // Handle error
+  //     print('Failed to update progress');
+  //   }
+  // }
+
+  Future<void> updateProgress(int submateriId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? authToken = prefs.getString('token');  // Get the auth token from shared preferences
+  final String apiUrl = '${BaseUrl.baseUrl}/progress/$submateriId/save'; // Include submateri_id in URL
+
+  // Retrieve stored latihan ids from SharedPreferences
+  List<int> latihanIds = prefs.getStringList('latihanIds')?.map((e) => int.parse(e)).toList() ?? [];
+
+  // If there are no latihan IDs, show an error and return
+  if (latihanIds.isEmpty) {
+    debugPrint('No latihan IDs found to update progress.');
+    return;
+  }
+
+  final response = await http.post(
+    Uri.parse(apiUrl),
+    headers: {
+      'Authorization': 'Bearer $authToken',  // Send the auth token for authorization
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'latihan_ids': latihanIds,  // Pass the array of latihan IDs
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    // If successful, show completion dialog
+    _showCompletionDialog(context);
+
+    // After updating, remove the stored latihan IDs from SharedPreferences
+    await clearLatihanIds();
+  } else {
+    // Handle failure response
+    print('Failed to update progress');
+  }
+}
+
+// Function to remove latihan ids from SharedPreferences after the action
+Future<void> clearLatihanIds() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('latihanIds');
+  debugPrint("Latihan IDs cleared from SharedPreferences.");
+}
+
+
+
+  void _showCompletionDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Selamat!'),
+        content: Text('Kamu telah menyelesaikan latihan ini.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Menutup dialog
+              context.go('/navigasi');
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +263,7 @@ class _PelafalanPageState extends State<PelafalanPage> {
                         child: Column(
                           children: [
                             Text(
-                              'Pelafalan Ustadz',
+                              'Pelafalan Benar',
                               style: TextStyle(
                                 color: secondPrimaryColor,
                                 fontWeight: FontWeight.bold,
@@ -231,7 +331,9 @@ class _PelafalanPageState extends State<PelafalanPage> {
                             },
                           );
                         } else {
-                          context.go('/navigasi');
+                          //  updateProgress(widget.id);
+                          
+      updateProgress(widget.id);  // Pass submateri_id (widget.id) and latihan_ids
                         }
                       },
                       style: ElevatedButton.styleFrom(

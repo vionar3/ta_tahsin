@@ -277,7 +277,7 @@ class _DataSantriPageState extends State<DataSantriPage> {
                   children: [
                     TextButton.icon(
                       onPressed: () {
-                        context.go('/tambah_santri');
+                        context.push('/tambah_santri');
                       },
                       icon: const Icon(
                         Icons.add,
@@ -400,7 +400,7 @@ class _DataSantriPageState extends State<DataSantriPage> {
                                                 ),
                                               ),
                                               onTap: () {
-                                                context.go('/detail_user', extra: {
+                                                context.push('/detail_user', extra: {
                                 'id': santri['id'],
                               });
                                                 // router.push("/detail_user");  
