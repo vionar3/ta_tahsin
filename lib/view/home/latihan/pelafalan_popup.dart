@@ -97,48 +97,52 @@ class _PelafalanPageState extends State<PelafalanPage> {
   //   }
   // }
 
-  Future<void> updateProgress(int submateriId) async {
+  Future<void> updateStatusProgress() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? authToken = prefs.getString('token');  // Get the auth token from shared preferences
-  final String apiUrl = '${BaseUrl.baseUrl}/progress/$submateriId/save'; // Include submateri_id in URL
+  String? authToken = prefs.getString('token');
+  final String apiUrl = '${BaseUrl.baseUrl}/update_progress_status';
 
-  // Retrieve stored latihan ids from SharedPreferences
-  List<int> latihanIds = prefs.getStringList('latihanIds')?.map((e) => int.parse(e)).toList() ?? [];
+  // Ambil list ID progress yang tersimpan
+  List<int> progressIds = prefs.getStringList('progressIds')?.map((e) => int.parse(e)).toList() ?? [];
 
-  // If there are no latihan IDs, show an error and return
-  if (latihanIds.isEmpty) {
-    debugPrint('No latihan IDs found to update progress.');
+  if (progressIds.isEmpty) {
+    debugPrint('No progress IDs found to update.');
     return;
   }
 
-  final response = await http.post(
-    Uri.parse(apiUrl),
-    headers: {
-      'Authorization': 'Bearer $authToken',  // Send the auth token for authorization
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'latihan_ids': latihanIds,  // Pass the array of latihan IDs
-    }),
-  );
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'progress_ids': progressIds,
+      }),
+    );
 
-  if (response.statusCode == 200) {
-    // If successful, show completion dialog
-    _showCompletionDialog(context);
+    if (response.statusCode == 200) {
+      debugPrint('Progress status updated successfully.');
+      _showCompletionDialog(context);
 
-    // After updating, remove the stored latihan IDs from SharedPreferences
-    await clearLatihanIds();
-  } else {
-    // Handle failure response
-    print('Failed to update progress');
+      // Hapus setelah update
+    } else {
+      debugPrint('Failed to update progress status. Code: ${response.statusCode}');
+      debugPrint('Body: ${response.body}');
+    }
+  } catch (e) {
+    debugPrint('Error updating progress status: $e');
   }
 }
+
 
 // Function to remove latihan ids from SharedPreferences after the action
 Future<void> clearLatihanIds() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.remove('latihanIds');
-  debugPrint("Latihan IDs cleared from SharedPreferences.");
+  await prefs.remove('progressIds');
+  debugPrint("progressIds cleared from SharedPreferences.");
 }
 
 
@@ -318,7 +322,7 @@ Future<void> clearLatihanIds() async {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (currentStep < latihanData.length - 1) {
                           setState(() {
                             currentStep++; // Update step saat lanjut
@@ -333,7 +337,9 @@ Future<void> clearLatihanIds() async {
                         } else {
                           //  updateProgress(widget.id);
                           
-      updateProgress(widget.id);  // Pass submateri_id (widget.id) and latihan_ids
+                          
+      updateStatusProgress();  // Pass submateri_id (widget.id) and latihan_ids
+      await clearLatihanIds();
                         }
                       },
                       style: ElevatedButton.styleFrom(

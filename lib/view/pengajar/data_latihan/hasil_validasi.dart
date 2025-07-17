@@ -6,21 +6,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ta_tahsin/core/baseurl/base_url.dart';
 import 'package:ta_tahsin/core/theme.dart';
 
-class PenilaianPage extends StatefulWidget {
-  // final int user_id;
+class HasilValidasiPage extends StatefulWidget {
+  final int user_id;
   final int sub_materi_id;
 
-  const PenilaianPage({
+  const HasilValidasiPage({
     super.key,
-    // required this.user_id,
+    required this.user_id,
     required this.sub_materi_id,
   });
 
   @override
-  _PenilaianPageState createState() => _PenilaianPageState();
+  _HasilValidasiPageState createState() => _HasilValidasiPageState();
 }
 
-class _PenilaianPageState extends State<PenilaianPage> {
+class _HasilValidasiPageState extends State<HasilValidasiPage> {
   bool isLoading = true;
   List<dynamic> progressData = [];
   int totalNilai = 0;
@@ -33,44 +33,32 @@ class _PenilaianPageState extends State<PenilaianPage> {
   }
 
   Future<void> fetchProgressData() async {
-  // Ambil SharedPreferences untuk mendapatkan token dan user_id
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');  // Mengambil token dari SharedPreferences
-  int userId = prefs.getInt('user_id') ?? 0;  // Mengambil user_id, default 0 jika tidak ada
+  String? token = prefs.getString('token');
 
-  if (userId == 0) {
-    // Jika user_id tidak valid, tampilkan pesan error
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('User ID tidak ditemukan.'),
-    ));
-    return;
-  }
-
-  // Panggil API untuk mengambil data progress latihan
   final response = await http.get(
-    Uri.parse('${BaseUrl.baseUrl}/progress/latihan/$userId/${widget.sub_materi_id}'),
-    headers: {'Authorization': 'Bearer $token'},  // Menambahkan token di header
+    Uri.parse('${BaseUrl.baseUrl}/progress/latihan/${widget.user_id}/${widget.sub_materi_id}'),
+    headers: {'Authorization': 'Bearer $token'},
   );
 
   if (response.statusCode == 200) {
     var data = json.decode(response.body);
     setState(() {
       progressData = data['data'];  // Ambil data progress list dari respons
-      totalNilai = (data['data'][0]['total_nilai'] ?? 0.0).toInt();  // Pastikan total_nilai adalah int
-      status = totalNilai >= 70 ? "Selesai" : "Gagal";  // Tentukan status berdasarkan nilai
+      totalNilai = (data['data'][0]['total_nilai'] ?? 0.0).toInt();  // Ensure it's an int
+      status = totalNilai >= 70 ? "Selesai" : "Gagal";
       isLoading = false;
     });
   } else {
     setState(() {
       isLoading = false;
     });
-    // Handle error jika response tidak OK
+    // Handle error here
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Gagal memuat data validasi'),
     ));
   }
 }
-
 
   @override
   Widget build(BuildContext context) {
@@ -81,30 +69,21 @@ class _PenilaianPageState extends State<PenilaianPage> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(50), 
+        preferredSize: const Size.fromHeight(50),
         child: Card(
-          elevation: 4, 
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero, 
-          ),
-          margin: EdgeInsets.zero, 
+          elevation: 4,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          margin: EdgeInsets.zero,
           child: AppBar(
-            backgroundColor:
-                secondPrimaryColor, 
-            title: Text(
-              'Hasil Penilaian',
+            automaticallyImplyLeading: false,
+            backgroundColor: secondPrimaryColor,
+            title: const Text(
+              'Hasil Validasi',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              color: Colors.white,
-              onPressed: () {
-                context.pop();
-              },
             ),
           ),
         ),
@@ -229,7 +208,43 @@ class _PenilaianPageState extends State<PenilaianPage> {
                         ),
                       );
                     }).toList(),
-                    
+                    // Adding "Selesai" button at the bottom
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              context.go('/navigasiPengajar'); 
+
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: secondPrimaryColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                                vertical: 12.0,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                              ),
+                            ).copyWith(
+                              splashFactory: InkRipple.splashFactory,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "selesai",
+                                  style: TextStyle(
+                                    color: whiteColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
                   ],
                 ),
               ),

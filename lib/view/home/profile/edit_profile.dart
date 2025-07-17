@@ -24,6 +24,10 @@ class _EditProfileState extends State<EditProfile> {
   String _gender = 'Laki-laki';
   bool _isEditing = false; // Track whether we are in edit mode
   bool _isLoading = true; // Track whether data is loading
+  String _selectedJenjangPendidikan = 'SD'; // Default value
+
+  // List for dropdown values
+  List<String> jenjangPendidikanOptions = ['SD', 'SMP', 'SMA', 'Perguruan Tinggi'];
 
   @override
   void initState() {
@@ -117,6 +121,21 @@ Future<void> _updateUserData() async {
   }
 }
 
+Future<void> _selectDate(BuildContext context) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(), // Default current date
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (selectedDate != null) {
+      setState(() {
+        // Format selected date as 'dd/MM/yyyy'
+        _dobController.text = "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+      });
+    }
+  }
+
 
   // Show a success dialog after user data is updated successfully
   void _showSuccessDialog() {
@@ -195,9 +214,9 @@ Future<void> _updateUserData() async {
                     ),
                     SizedBox(height: 16),
                     _buildTextFormField(_fullNameController, 'Nama Lengkap', _isEditing),
-                    _buildTextFormField(_addressController, 'Alamat', _isEditing),
-                    _buildTextFormField(_dobController, 'Usia', _isEditing),
-                    _buildTextFormField(_jenjangPendidikanController, 'Jenjang Pendidikan', _isEditing),
+                    _buildAddressField(_addressController, 'Alamat', _isEditing),
+                    _buildDateOfBirthField(_dobController, 'Tanggal Lahir', _isEditing),
+                    _buildDropdownJenjangPendidikan( 'Jenjang Pendidikan', _isEditing),
                     Row(
                       children: [
                         Text('Jenis Kelamin', style: TextStyle(fontSize: 16)),
@@ -242,8 +261,8 @@ Future<void> _updateUserData() async {
                       ),
                     ),
                     SizedBox(height: 16),
-                    _buildTextFormField(_phoneController, 'No WA Wali', _isEditing),
-                    _buildTextFormField(_emailController, 'Email', _isEditing),
+                    _buildPhoneField(_phoneController, 'No WA Wali', _isEditing),
+                    _buildEmailField(_emailController, 'Email', _isEditing),
                     SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
@@ -275,7 +294,6 @@ Future<void> _updateUserData() async {
     );
   }
 
-  // Helper function to build TextFormField
   Widget _buildTextFormField(TextEditingController controller, String labelText, bool isEnabled) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,19 +302,16 @@ Future<void> _updateUserData() async {
         SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          enabled: isEnabled, // Control whether the field is enabled or not
+          enabled: isEnabled,
+          autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Colors.grey[200], // Warna latar belakang lebih terang
             border: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(40), // Sudut melengkung
+              borderSide: BorderSide.none, // Menghilangkan border default
             ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -309,4 +324,198 @@ Future<void> _updateUserData() async {
       ],
     );
   }
+
+  Widget _buildAddressField(TextEditingController controller, String labelText, bool isEnabled) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      SizedBox(height: 8),
+      TextFormField(
+        controller: _addressController,
+        keyboardType: TextInputType.multiline, // Membuka multiline pada keyboard
+        maxLines: 3, // Menentukan tinggi area input, bisa lebih panjang jika diperlukan
+        autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+        enabled: isEnabled,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none, // Menghilangkan border default
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Harap masukkan Alamat';
+          }
+          return null;
+        },
+      ),
+      SizedBox(height: 20),
+    ],
+  );
+}
+
+
+ 
+
+  // Fungsi untuk input tanggal lahir
+  Widget _buildDateOfBirthField(TextEditingController controller, String labelText, bool isEnabled) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _selectDate(context),
+          child: AbsorbPointer(
+            child: TextFormField(
+              controller: controller,
+              enabled: isEnabled,
+              autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                hintText: 'Pilih Tanggal Lahir',
+                suffixIcon: Icon(Icons.calendar_today, color: Colors.grey), // Menambahkan ikon kalender
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Harap pilih Tanggal Lahir';
+                }
+                return null;
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildDropdownJenjangPendidikan(String labelText, bool isEnabled) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Label untuk dropdown
+      Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      SizedBox(height: 8),
+
+      // Dropdown untuk Jenjang Pendidikan
+      DropdownButtonFormField<String>(
+        value: _selectedJenjangPendidikan, // Nilai yang dipilih, diambil dari API
+        onChanged: isEnabled
+            ? (String? newValue) {
+                setState(() {
+                  _selectedJenjangPendidikan = newValue!;
+                });
+              }
+            : null, // Hanya bisa diubah jika dalam mode edit
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(40),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        ),
+        items: jenjangPendidikanOptions.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Harap pilih Jenjang Pendidikan';
+          }
+          return null;
+        },
+      ),
+      SizedBox(height: 20),
+    ],
+  );
+}
+
+
+  // Fungsi untuk input No WA Wali dengan tipe nomor dan ikon di kanan
+  Widget _buildPhoneField(TextEditingController controller, String labelText, bool isEnabled) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          enabled: isEnabled, // Set keyboard type to phone
+          autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(40),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            suffixIcon: Icon(Icons.phone, color: Colors.grey), // Icon for phone number on the right
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Harap masukkan No WA Wali';
+            }
+            return null;
+          },
+        ),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // Fungsi untuk input Email dengan tipe email dan ikon di kanan
+Widget _buildEmailField(TextEditingController controller, String labelText, bool isEnabled) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(labelText, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      SizedBox(height: 8),
+      TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.emailAddress, // Set keyboard type to email
+        autovalidateMode: AutovalidateMode.onUserInteraction, // Validasi otomatis saat input
+        enabled: isEnabled,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(40),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          suffixIcon: Icon(Icons.email, color: Colors.grey), // Icon for email on the right
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Harap masukkan Email';
+          }
+          // Validasi untuk memastikan email berakhiran @gmail.com
+          final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@gmail\.com$');
+          if (!regex.hasMatch(value)) {
+            return 'Harap masukkan @gmail.com';
+          }
+          return null;
+        },
+      ),
+      SizedBox(height: 20),
+    ],
+  );
+}
 }

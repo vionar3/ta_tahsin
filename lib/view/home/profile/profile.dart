@@ -193,7 +193,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildTestResultSection("Usia", _age ?? "-"),
+                                  _buildTestResultSection("Tanggal Lahir", _age ?? "-"),
                                   Divider(color: Colors.white),
                                   _buildTestResultSection("Email", _email ?? "-"),
                                   Divider(color: Colors.white),

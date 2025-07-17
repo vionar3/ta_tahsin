@@ -65,6 +65,10 @@ class _LoginPageState extends State<LoginPage> {
       String peran = data['data']['user']['peran'];
       prefs.setString('peran', peran);
 
+      // Simpan user_id ke dalam SharedPreferences
+      int userId = data['data']['user']['id'];
+      prefs.setInt('user_id', userId);  // Menyimpan user_id sebagai integer
+
       if (peran == 'santri') {
         router.push("/navigasi");
       } else if (peran == 'pengajar') {

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ta_tahsin/view/auth/changePass/ubah_password.dart';
 import 'package:ta_tahsin/view/home/latihan/latihan.dart';
+import 'package:ta_tahsin/view/home/penilaian/penilaian.dart';
 import 'package:ta_tahsin/view/home/profile/edit_profile.dart';
 import 'package:ta_tahsin/view/home/progres/progres.dart';
 import 'package:ta_tahsin/view/home/quiz/detail_quiz.dart';
 import 'package:ta_tahsin/view/home/quiz/hasil_quiz.dart';
-import 'package:ta_tahsin/view/pengajar/data_latihan/detail_data_latihan.dart';
+import 'package:ta_tahsin/view/pengajar/data_latihan/detail_validasi_pelafalan.dart';
+import 'package:ta_tahsin/view/pengajar/data_latihan/hasil_validasi.dart';
 import 'package:ta_tahsin/view/pengajar/data_santri/detail_data_santri.dart';
 import 'package:ta_tahsin/view/pengajar/data_santri/tambah_santri.dart';
 import 'package:ta_tahsin/view/pengajar/kemajuan/detail_kemajuan.dart';
@@ -136,15 +138,15 @@ GoRoute(
         return TambahSantriPage();  // Halaman Data Santri untuk pengajar
       },
     ),
-    GoRoute(
-      path: '/detail_data_latihan',
-      builder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
-        return DetailDataLatihanPage(
-          id: extra['id'],
-        );
-      },
-    ),
+    // GoRoute(
+    //   path: '/detail_data_latihan',
+    //   builder: (BuildContext context, GoRouterState state) {
+    //     final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+    //     return DetailDataLatihanPage(
+    //       id: extra['id'],
+    //     );
+    //   },
+    // ),
     GoRoute(
       path: '/detail_quiz',
       builder: (BuildContext context, GoRouterState state) {
@@ -197,6 +199,35 @@ GoRoute(
       path: '/edit_profile_pengajar',
       builder: (BuildContext context, GoRouterState state) {
         return EditProfilePengajar(
+        );
+      },
+    ),
+    GoRoute(
+      path: '/detail_validasi',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return DetailValidasiPelafalan(
+        user_id: extra['user_id'], // nilainya null
+        sub_materi_id: extra['sub_materi_id'], // nilainya null
+);
+      },
+    ),
+    GoRoute(
+      path: '/hasil_validasi',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return HasilValidasiPage(
+        user_id: extra['user_id'], // nilainya null
+        sub_materi_id: extra['sub_materi_id'], // nilainya null
+);  
+      },
+    ),
+    GoRoute(
+      path: '/penilaian',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return PenilaianPage(
+          sub_materi_id: extra['sub_materi_id'],
         );
       },
     ),

@@ -71,19 +71,48 @@ class _KemajuanPageState extends State<KemajuanPage> {
 
   // Fungsi untuk mengambil data kemajuan
   Future<void> fetchKemajuanData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
 
-    try {
-      final response = await http.get(
-        Uri.parse('${BaseUrl.baseUrl}/users/progres'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('${BaseUrl.baseUrl}/users/progres'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
 
-      if (response.statusCode == 200) {
-        var data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+
+      if (data['data'] == null || (data['data'] as List).isEmpty) {
+        // If no data found, show a warning message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.warning, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Tidak ada santri yang menyelesaikan latihan.',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange, // Set the background color for warning
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+                bottomLeft: Radius.zero,
+                bottomRight: Radius.zero,
+              ),
+            ),
+          ),
+        );
+      } else {
         setState(() {
           kemajuanList = data['data']; // Menyimpan data kemajuan
           filteredKemajuanList = kemajuanList;
@@ -97,24 +126,71 @@ class _KemajuanPageState extends State<KemajuanPage> {
             loadedUserIds.add(kemajuan['user_id']); // Tandai user_id yang sudah dimuat
           }
         }
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch data: ${response.body}')),
-        );
       }
-    } catch (e) {
+    } else {
       setState(() {
         isLoading = false;
       });
-      print('Error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Gagal memuat data kemajuan: ${response.body}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red, // Set the background color for error
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
+              bottomLeft: Radius.zero,
+              bottomRight: Radius.zero,
+            ),
+          ),
+        ),
       );
     }
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    print('Error occurred: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Terjadi kesalahan saat mengambil data: $e',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red, // Set the background color for error
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10),
+            bottomLeft: Radius.zero,
+            bottomRight: Radius.zero,
+          ),
+        ),
+      ),
+    );
   }
+}
+
+
 
   // Fungsi untuk mengambil data progres berdasarkan userId
   Future<void> fetchProgressData(int userId) async {

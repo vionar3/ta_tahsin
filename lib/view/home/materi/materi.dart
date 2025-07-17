@@ -314,9 +314,12 @@ class _MateriPageState extends State<MateriPage> {
                                                                 ),
                                                             child: ElevatedButton(
                                                               onPressed: () {
-                                                                debugPrint(
-                                                                  'tapped detail hasil penilaian',
-                                                                );
+                                                                context.push(
+                                              '/penilaian',
+                                              extra: {
+                                                'sub_materi_id': submateri['id'],
+                                              },
+                                            );
                                                               },
                                                               style: ElevatedButton.styleFrom(
                                                                 foregroundColor:
